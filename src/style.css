@@ -1,22 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
 *,
 *::before,
 *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
 }
 
 :root {
+    --app-background: url('./assets/page-background.jpeg') no-repeat;
+    --app-fallback-background: linear-gradient(90deg, hsla(33, 100%, 53%, 1), 6%, hsla(47, 100%, 68%, 1) 100%);
 
+    --svg-character-color: white;
+    --svg-character-bg-color: hsla(0, 100%, 0%, .1);
+
+    --container-bg-color: hsla(0, 100%, 100%, .9);
+    --container-box-shadow: 0 0 0 10px hsla(0, 100%, 0%, .3);
+
+    --tapas-list-item: 1px solid gray;
+
+    --submit-tapas-bg-color: hsl(0, 0%, 70%);
+    --submit-tapas-outline: 2px solid black;
 }
 
 html {
     font-size: 16px;
 }
 
-body {
+#app {
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
+
+
+    background: var(--app-fallback-background);
+    background: var(--app-background);
+    background-size: cover;
 }
