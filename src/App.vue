@@ -1,8 +1,79 @@
 <script>
+let id;
+
 export default {
+    mounted() {
+        this.loadExistingTapas();
+    },
     data() {
         return {
+            tapaStorageKey: 'tapas',
             tapas: []
+        }
+    },
+    methods: {
+        loadExistingTapas() {
+            id = localStorage.length;
+
+            if(!localStorage.getItem(this.tapaStorageKey)) {
+                id = 0;
+                return;
+            }
+
+            this.tapas = JSON.parse(localStorage.getItem(this.tapaStorageKey));
+            
+            // console.log(this.tapas);
+            // ^ Used for testing
+
+            id = this.tapas.length;
+        },
+        addTapasEvent(e) {
+            e.preventDefault();
+
+            const tapasInput = this.$refs['tapas-input'].value.trim();
+            // ^ Takes the input, trims it of any starting and/or ending empty characters
+
+            if(this.isEmpty(tapasInput)) return;
+
+            this.tapas.push({
+                id: id,
+                text: tapasInput,
+                checked: false
+            });
+
+            localStorage.setItem(this.tapaStorageKey, JSON.stringify(this.tapas));
+
+            id++;
+        },
+        isEmpty(str) {
+            if(str.length === 0) return true;
+
+            for(let i=0; i < str.length; i++) {
+                if(str[i] !== ' ') return false;
+            }
+
+            return true;
+        }, 
+        tapaListClickEvent(e) {
+            const eventTarget = e.target;
+            
+            if(eventTarget.nodeName !== 'LABEL') return;
+
+            const index = eventTarget.getAttribute('for').split('-')[1];
+            // ^ Getting the for attribute on the label element which contains the index
+            // for the tapa in the label
+
+            this.tapas[index].checked = !this.tapas[index].checked;
+            localStorage.setItem(this.tapaStorageKey, JSON.stringify(this.tapas));
+
+            this.tapas[index].checked = !this.tapas[index].checked;
+            // ^ This is done 2 times because v-modal updated the value after this function
+            // finishes, so in order to not get things mixed up I change it to the value
+            // it will have and return it back to it's previous value, and then v-modal
+            // will update it to the value it should have once more
+        },
+        tapaIdMaker(id) {
+            return 'tapa-'+ id;
         }
     }
 }
@@ -19,13 +90,17 @@ export default {
    <div class="container">
         <h2>Local Tapas</h2>
 
-        <ul class="tapas-list">
-            <li v-if="tapas.length === 0">Loading Tapas...</li>
+        <ul class="tapas-list" @click="tapaListClickEvent">
+            <li class="tapas-label" v-if="tapas.length === 0">Loading Tapas...</li>
+            <li v-else v-for="tapa in tapas" :key="tapa.id">
+                <input class="tapas-checkbox" type="checkbox" :name="tapaIdMaker(tapa.id)" :id="tapaIdMaker(tapa.id)" v-model="tapa.checked">
+                <label class="tapas-label" :for="tapaIdMaker(tapa.id)">{{tapa.text}}</label>
+            </li>
         </ul>
 
-        <form class="tapas-form">
-            <input type="text" name="tapas-input" id="tapas-input">
-            <button type="submit" class="submit-tapas">+ Add Item</button>
+        <form class="tapas-form" @submit="addTapasEvent">
+            <input type="text" name="tapas-input" id="tapas-input" ref="tapas-input">
+            <button class="submit-tapas" type="submit">+ Add Item</button>
         </form>
    </div>
 </template>
@@ -50,19 +125,18 @@ export default {
         text-transform: uppercase;
         text-align: center;
         font-size: 1.5rem;
-        margin-bottom: 1rem;
     }
 
     .tapas-list {
         list-style: none;
         margin-bottom: 1rem;
         font-size: 1.1rem;
+        isolation: isolate;
     }
 
     .tapas-list > li {
-        padding-bottom: .5rem;
-        border-bottom: var(--tapas-list-item);
-        font-weight: bold;
+        display: flex;
+        position: relative;
     }
 
     .tapas-form {
@@ -89,5 +163,31 @@ export default {
 
     .submit-tapas:hover {
         outline: 2px solid black;
+    }
+
+    .tapas-label {
+        min-width: 100%;
+        min-height: 100%;
+        padding-top: 1.2rem;
+        padding-bottom: .5rem;
+        border-bottom: var(--tapas-list-item);
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .tapas-checkbox {
+        position: absolute;
+        visibility: hidden;
+        z-index: -1;
+    }
+
+    .tapas-checkbox + .tapas-label::before {
+        content: '🍴';
+        margin-right: .5rem;
+    }
+
+    .tapas-checkbox:checked + .tapas-label::before {
+        content: '🌮';
+        margin-right: .5rem;
     }
 </style>
